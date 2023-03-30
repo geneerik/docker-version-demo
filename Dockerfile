@@ -1,4 +1,6 @@
-FROM docker.io/library/ubuntu:latest
+#FROM docker.io/library/ubuntu:latest
+# try to help snyk analysis
+FROM ubuntu
 
 RUN echo "Hello world"
 
