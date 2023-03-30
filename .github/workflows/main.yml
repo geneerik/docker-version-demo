@@ -103,18 +103,7 @@ jobs:
             type=sha
           # TODO: some of these could use github variables
           labels: |
-            org.opencontainers.artifact.description='Demonstration of automatically versioned docker image built with github actions CI with multiarch support'
-            org.opencontainers.image.authors='Gene Erik <geneerik@fossdevops.com>'
-            org.opencontainers.image.url='https://github.com/geneerik/docker-version-demo'
-            org.opencontainers.image.documentation='https://github.com/geneerik/docker-version-demo'
-            org.opencontainers.image.source='https://github.com/geneerik/docker-version-demo.git'
-            org.opencontainers.image.vendor='FOSSDevOps'
-            org.opencontainers.image.licenses='MIT-0'
             org.opencontainers.image.ref.name=${{ github.ref }}
-            org.opencontainers.image.title='GeneErik Docker Versioning Demo'
-            org.opencontainers.image.description='Demonstration of automatically versioned docker image built with github actions CI with multiarch support'
-            org.opencontainers.image.base.digest="sha256:67211c14fa74f070d27cc59d69a7fa9aeff8e28ea118ef3babc295a0428a6d21"
-            org.opencontainers.image.base.name="docker.io/library/ubuntu:latest"
       
       # Add some more possible tags. Right now we have commit short-sha, branch name, semver component from the commit tag
       # This adds the value of BUILD_VER from above (eg. 1.0.1a2) and latest is this is the main branch
@@ -173,7 +162,8 @@ jobs:
           # or you can signup for free at https://snyk.io/login
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.shortsha.outputs.sha_short }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ steps.shortsha.outputs.sha_short }}
+          args: --file=Dockerfile
 
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v2
