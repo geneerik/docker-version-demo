@@ -22,6 +22,11 @@ on:
 
 permissions:
   contents: read
+  
+# Set up the docker base info
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   snyk:
