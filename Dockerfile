@@ -1,6 +1,6 @@
 #FROM docker.io/library/ubuntu:latest
 # try to help snyk analysis
-FROM ubuntu
+FROM ubuntu:rolling
 
 RUN echo "Hello world"
 
