@@ -6,13 +6,13 @@
     }
   },
   "customizations": {
-	  "vscode": {
+    "vscode": {
       "extensions": [
         "ms-azuretools.vscode-docker",
         "DavidAnson.vscode-markdownlint",
         "github.vscode-github-actions",
         "eamodio.gitlens"
-	    ]
-	  }
+      ]
+    }
   }
 }
