@@ -128,10 +128,11 @@ jobs:
           fi
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
 
-      # display the tags we will use
+      # display the tags and labels we will use for the docker image
       - name: Show docker tags
         run: |
           echo "docker image tags: ${{ steps.get_image_tags.outputs.tags }}"
+          echo "docker image labels: ${{ steps.get_image_tags.outputs.labels }}"
 
       # build the images
       - name: Build and push Docker image
