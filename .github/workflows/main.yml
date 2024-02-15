@@ -70,7 +70,7 @@ jobs:
       # Add support for more platforms with QEMU (optional)
       # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           # Add whatever platforms you need in addition to x86_64
           platforms: 'arm64'
