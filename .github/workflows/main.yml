@@ -77,7 +77,7 @@ jobs:
 
       # configure the docker buildx environment (and use the buildkit engine)
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       # authenticate to Github's docker image repo (ghcr.io)
       - name: Log in to the Container registry
