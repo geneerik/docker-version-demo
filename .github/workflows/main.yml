@@ -18,7 +18,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-x64-arm64:
+  build-and-push-image:
     runs-on: ubuntu-latest
 
     # allow access to github docker registry
@@ -26,10 +26,11 @@ jobs:
       contents: read
       packages: write
 
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checkout the code
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -69,18 +70,18 @@ jobs:
       # Add support for more platforms with QEMU (optional)
       # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           # Add whatever platforms you need in addition to x86_64
           platforms: 'arm64'
 
       # configure the docker buildx environment (and use the buildkit engine)
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       # authenticate to Github's docker image repo (ghcr.io)
       - name: Log in to the Container registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -91,7 +92,7 @@ jobs:
       # as that would presently set v1 back to v1.0.x
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           # generate Docker tags based on the following events/attributes
@@ -101,7 +102,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=sha
-          # TODO: some of these could use github variables
           labels: |
             org.opencontainers.image.ref.name=${{ github.ref }}
       
@@ -137,7 +137,7 @@ jobs:
 
       # build the images
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
@@ -146,11 +146,11 @@ jobs:
           #push: true
           # Add whatever platforms you need
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.get_image_tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/${{ env.IMAGE_NAME }}-cache
           cache-to: type=registry,ref=ghcr.io/${{ env.IMAGE_NAME }}-cache,mode=max
-          # TODO: need to actually translate the labels to annotations, bu this is a PoC
+          # TODO: need to actually translate the labels to annotations, but this is a PoC
           outputs: |
             type=registry,annotation-manifest-descriptor.org.opencontainers.image.title=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.title'] }},annotation-manifest-descriptor.org.opencontainers.image.description=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.description'] }},annotation.org.opencontainers.image.title=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.title'] }},annotation.org.opencontainers.image.description=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.description'] }},annotation-index.org.opencontainers.image.title=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.title'] }},annotation-index.org.opencontainers.image.description=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.description'] }}
           build-args: |
@@ -166,7 +166,7 @@ jobs:
   # Run the snyk analysis job to check for security issues
   snyk:
     needs:
-      - build-x64-arm64
+      - build-and-push-image
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
@@ -175,7 +175,7 @@ jobs:
     steps:
       # Checkout the code
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -190,10 +190,10 @@ jobs:
           # or you can signup for free at https://snyk.io/login
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ needs.build-x64-arm64.outputs.sha_short }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ needs.build-and-push-image.outputs.sha_short }}
           args: --file=Dockerfile --sarif-file-output=snyk.sarif
 
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
